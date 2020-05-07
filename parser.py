@@ -1,6 +1,15 @@
 from collections import defaultdict
 import re
 import sys
+import pandas
+
+resources = [
+    (2, "food", "hunting grounds"),
+    (3, "wood", "forest"),
+    (4, "brick", "clay pit"),
+    (5, "stone", "quarry"),
+    (6, "Gold", "river")
+]
 
 def parseDice(lines, output):
     pattern = r"(.*)'s ([0-9]+) dice sum is ([0-9]+)"
@@ -16,32 +25,30 @@ def parseDice(lines, output):
 
 def parseMarket(lines, output):
     pattern = r"(.*) takes (.*)"
-    lastName = None
-    lastValue = None
     numericMap = {"wood": 1, "brick": 2, "stone": 3, "Gold": 4, "tool": 5, "agriculture level": 6}
-    count = 0
+
+    def pop(history):
+        firstName = next(iter(history))
+        output[firstName]['market'].append(list(history.values()))
+        history.clear()
+
+    history = {}
     for line in lines:
         m = re.match(pattern, line)
         if m:
             name = m.group(1)
             value = m.group(2)
             numericValue = numericMap[value]
-            if lastName is not None:
-                count += 1
-                output[lastName]['market'].append([lastValue, numericValue])
-                lastName = None
+            if name not in history:
+                history[name] = numericValue
             else:
-                lastName = name
-                lastValue = numericValue
+                pop(history)
+    if history:
+        pop(history)
 
 def parseResources(lines, output):
     for line in lines:
-        for resource, area in [
-                ("food", "hunting grounds"),
-                ("wood", "forest"),
-                ("brick", "clay pit"),
-                ("stone", "quarry"),
-                ("Gold", "river")]:
+        for _, resource, area in resources:
             pattern = r"(.*) places ([0-9]+) people on " + area
             m = re.match(pattern, line)
             if m:
@@ -155,6 +162,9 @@ def main():
             'diceAverage': 0,
             'diceSum': 0,
             'diceRolls': 0,
+            'totalPips': 0,
+            'wastedPips': 0,
+
             'market': [],
             'turns': 0,
             'agriculture': 0,
@@ -183,7 +193,15 @@ def main():
                parseTool, parseUsedTool, parsePeople, parseBuildings, parseCards]:
         fn(lines, output)
     for i in output:
-        print("%s %s" % (i, output[i]))
+        output[i]['totalPips'] = output[i]['usedTool'] + output[i]['diceSum']
+        output[i]['wastedPips'] = output[i]['totalPips']
+        for value, resource, _ in resources:
+            output[i]['wastedPips'] -= output[i][resource.lower()] * value
+    pandas.options.display.width = 0
+    pandas.options.display.max_colwidth = 100
+    df = pandas.DataFrame.from_dict(output).loc[list(next(iter(output.values())).keys())]
+    print(df)
+    print()
 
 
 if __name__ == "__main__":
