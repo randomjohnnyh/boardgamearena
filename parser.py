@@ -39,10 +39,9 @@ def parseMarket(lines, output):
             name = m.group(1)
             value = m.group(2)
             numericValue = numericMap[value]
-            if name not in history:
-                history[name] = numericValue
-            else:
+            if name in history:
                 pop(history)
+            history[name] = numericValue
     if history:
         pop(history)
 
