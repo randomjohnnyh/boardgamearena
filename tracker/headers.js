@@ -113,6 +113,9 @@ function handleMessage(args, type)
   if (type == "playerstatus") {
     return;
   }
+  if (type == "chat") {
+    return;
+  }
 
   var playerId = args['player_id']
   if (!playerId) {
