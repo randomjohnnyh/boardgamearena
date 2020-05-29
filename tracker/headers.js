@@ -18,14 +18,6 @@ window.addEventListener("unload", function() {
   chrome.debugger.detach({tabId:tabId});
 });
 
-var seenUids = {};
-
-var playerHeaders = {}
-var playerBoards = {};
-var playerNames = {};
-var playerStats = {};
-var playerCards = {};
-
 var statsDict = {
   "agriculture": 0,
   "tool": 0,
@@ -50,6 +42,16 @@ var cardTypes = [
   'm1', 'm2', 'm1', 'm2', 'c4', 'c4', 'f1', 'f1', 'f1', 'f2', 'f2',
   'c5', 'c5', 'c6', 'c6', 'c7', 'c7', 'c8', 'p1', 'p1', 'p2', 'p2', 'p1'
 ];
+
+var seenUids = {};
+
+var playerHeaders = {}
+var playerBoards = {};
+var playerNames = {};
+var playerStats = {};
+var playerCards = {};
+
+var finalScoring = false;
 
 function onEvent(debuggeeId, message, params)
 {
@@ -114,6 +116,10 @@ function handleMessage(args, type)
     return;
   }
   if (type == "chat") {
+    return;
+  }
+  if (type == "finalScoring") {
+    finalScoring = true;
     return;
   }
 
@@ -236,6 +242,9 @@ function handleBuyBuilding(playerId, new_score)
 
 function handleScorePoint(playerId, new_score)
 {
+  if (finalScoring) {
+    return;
+  }
   playerStats[playerId]['points'] = parseInt(new_score);
 }
 
@@ -305,12 +314,11 @@ function updateHeader(playerId)
   tokens.push(playerStats[playerId]['agriculture'])
   tokens.push(playerStats[playerId]['tool'])
   tokens.push(playerStats[playerId]['people'])
-  tokens.push(playerStats[playerId]['cards'])
   tokens.push(playerStats[playerId][1])
   tokens.push(playerStats[playerId][2])
   tokens.push(playerStats[playerId][3])
   tokens.push(playerStats[playerId][4])
-  playerHeaders[playerId].textContent = tokens.join(' ')
+  playerHeaders[playerId].textContent = tokens.join('  ')
 }
 
 function formatText(text)
