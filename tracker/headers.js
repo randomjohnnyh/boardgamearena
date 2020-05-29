@@ -48,7 +48,7 @@ var statsDict = {
 var cardTypes = [
   '', 'c1', 'c1', 'h3', 'h1', 'h2', 'h2', 'h1', 'c2', 'c2', 'c3', 'c3',
   'm1', 'm2', 'm1', 'm2', 'c4', 'c4', 'f1', 'f1', 'f1', 'f2', 'f2',
-  'c5', 'c5', 'c6', 'c6', 'c7', 'c7', 'c8', 'p1', 'p1', 'p2', 'p2', 'p2', 'p1'
+  'c5', 'c5', 'c6', 'c6', 'c7', 'c7', 'c8', 'p1', 'p1', 'p2', 'p2', 'p1'
 ];
 
 function onEvent(debuggeeId, message, params)
@@ -110,14 +110,18 @@ function appendResponse(requestId, response)
 
 function handleMessage(args, type)
 {
+  if (type == "playerstatus") {
+    return;
+  }
+
   var playerId = args['player_id']
   if (!playerId) {
-    return
+    return;
   }
 
   var playerName = args['player_name']
   if (playerName) {
-    playerNames[playerId] = playerName
+    playerNames[playerId] = playerName;
   }
 
   createPlayer(playerId)
