@@ -29,6 +29,9 @@ var statsDict = {
   "usedTool": 0,
   "totalPoints": 0,
   "estimatedPoints": 0,
+  "take2": false,
+  "usedTake2": false,
+  "mystery": false,
 
   0: 0,
   1: 0,
@@ -151,6 +154,12 @@ function handleMessage(args, type)
     handleAdditionalWorker(playerId, args['new_worker_nb'])
   } else if (type == "toolUpdate") {
     handleToolUpdate(playerId, args['tools'])
+  } else if (type == "playerdrawCard") {
+    handlePlayerDrawCard(playerId)
+  } else if (type == "canPickResource") {
+    handlePlayerCanPickResource(playerId)
+  } else if (type == "usePickResources") {
+    handlePlayerPickResources(playerId)
   }
 
   updateTotalPoints(playerId)
@@ -212,6 +221,15 @@ function handleBuyCard(playerId, card)
   var cardId = parseInt(card['type'])
   if (!cardId) {
     return;
+  }
+
+  if (cardId == 9) {
+    // take 2
+    playerStats[playerId]['take2'] = true;
+  }
+  if (cardId == 10) {
+    // mystery card
+    playerStats[playerId]['mystery'] = true;
   }
 
   var cardType = cardTypes[cardId];
@@ -280,6 +298,22 @@ function handleToolUpdate(playerId, tools)
   playerStats[playerId]['tool'] = toolCount
 }
 
+function handlePlayerDrawCard(playerId)
+{
+  // not needed, handled above
+  // playerStats[playerId]['mystery'] = true;
+}
+
+function handlePlayerCanPickResource(playerId)
+{
+  // not needed, handled above
+  // playerStats[playerId]['take2'] = true;
+}
+
+function handlePlayerPickResources(playerId)
+{
+  playerStats[playerId]['usedTake2'] = true;
+}
 
 function createPlayer(playerId)
 {
@@ -318,7 +352,19 @@ function updateHeader(playerId)
   tokens.push(playerStats[playerId][2])
   tokens.push(playerStats[playerId][3])
   tokens.push(playerStats[playerId][4])
-  playerHeaders[playerId].textContent = tokens.join('  ')
+  var lines = []
+  lines.push(tokens.join('  '))
+  if (playerStats[playerId]['take2']) {
+    if (playerStats[playerId]['usedTake2']) {
+      lines.push("USED TAKE TWO");
+    } else {
+      lines.push("HAS TAKE TWO");
+    }
+  }
+  if (playerStats[playerId]['mystery']) {
+    lines.push("HAS MYSTERY CARD");
+  }
+  playerHeaders[playerId].textContent = lines.join('\r\n')
 }
 
 function formatText(text)
