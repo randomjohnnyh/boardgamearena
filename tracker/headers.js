@@ -390,7 +390,7 @@ function formatHeaders(headers)
   var bgx = -(cardId - 1) * 85
   var str = "-" + bgx.toString() + "px 0px"
   div.className = "card";
-  div.textContent = cardType;
+  // div.textContent = cardType;
   div.style.backgroundPosition = bgx.toString() + "px 0px"
   return div
 }
